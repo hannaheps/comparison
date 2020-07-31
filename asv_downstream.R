@@ -854,6 +854,241 @@ permutest(betadisper(bc.plob.phy, plob.phy.nr.data$seq_platform, type = "centroi
 #Groups     1 0.45774 0.45774 19.573    999  0.001 ***
 #  Residuals 24 0.56129 0.02339     
 
+#Filtered for truncation
+##Keep only taxa that have > 0.5% relative abundance in each sample
+physeq.raF = filter_taxa(physeq.ra, function(x) mean(x) < .005,TRUE)
+rmtaxa = taxa_names(physeq.raF)
+alltaxa = taxa_names(physeq.ra)
+
+myTaxa = alltaxa[!alltaxa %in% rmtaxa]
+
+physeq.nrF <- prune_taxa(myTaxa,physeq.nr)
+tax_table(physeq.raF) #5491 taxa
+
+mfol.nrF <- subset_samples(physeq.nrF, field_host_name == "Montipora foliosa")
+mfol.data.nrF <- as(sample_data(mfol.nrF), "data.frame")
+plob.nrF <- subset_samples(physeq.nrF, field_host_name == "Porites lobata")
+plob.data.nrF <- as(sample_data(plob.nrF), "data.frame")
+
+mfol.raF <- transform_sample_counts(mfol.nrF, function(x) x/ sum(x))
+mfol.data.raF <- as(sample_data(mfol.raF), "data.frame")
+plob.raF <- transform_sample_counts(plob.nrF, function(x) x/ sum(x)) 
+plob.data.raF <- as(sample_data(plob.raF), "data.frame")
+
+jc.mfol.F <- phyloseq::distance(mfol.nrF, method = "jaccard", binary = TRUE)
+adonis(jc.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1    0.6268 0.62677  3.1391 0.13566  0.005 **
+#  Residuals    20    3.9933 0.19966         0.86434          
+#Total        21    4.6200                 1.00000   
+permutest(betadisper(jc.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
+#        Df   Sum Sq  Mean Sq     F N.Perm Pr(>F)
+#Groups     1 0.016105 0.016105 1.292    999  0.285
+#Residuals 20 0.249292 0.012465 
+
+un.mfol.F <- phyloseq::distance(mfol.nrF, method = "unifrac")
+adonis(un.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1   0.37564 0.37564  2.7376 0.1204  0.003 **
+#Residuals    20   2.74430 0.13721         0.8796          
+#Total        21   3.11994                 1.0000  
+permutest(betadisper(un.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
+#          Df   Sum Sq  Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.000279 0.000279 0.0248    999   0.88
+#Residuals 20 0.224960 0.011248  
+
+bc.F <- phyloseq::distance(mfol.raF, method = "bray")
+adonis(bc.F ~ seq_platform, strata = mfol.data.raF$sample_label, data = mfol.data.raF)
+#             Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1    0.4642 0.46423  1.3977 0.06532  0.009 **
+#  Residuals    20    6.6427 0.33214         0.93468          
+#Total        21    7.1070                 1.00000     
+permutest(betadisper(bc.F, mfol.data.raF$seq_platform, type = "centroid"))
+#           Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.009393 0.0093934 1.8692    999  0.181
+#Residuals 20 0.100508 0.0050254  
+
+w.mfol.F <- phyloseq::distance(mfol.raF, method = "wunifrac")
+adonis(w.mfol.F ~ seq_platform, strata = mfol.data.raF$sample_label, data = mfol.data.raF)
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+#seq_platform  1    0.2451 0.24508 0.97403 0.04644  0.113
+#Residuals    20    5.0323 0.25161         0.95356       
+#Total        21    5.2774                 1.00000   
+permutest(betadisper(w.mfol.F, mfol.data.raF$seq_platform, type = "centroid"))
+# Response: Distances
+#Df   Sum Sq   Mean Sq     F N.Perm Pr(>F)  
+#Groups     1 0.026409 0.0264095 2.942    999  0.091 .
+#Residuals 20 0.179534 0.0089767 
+
+jc.plob.F <- phyloseq::distance(plob.nrF, method = "jaccard", binary = TRUE)
+adonis(jc.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
+#             Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    0.8553 0.85529   4.355 0.15359  0.001 ***
+#  Residuals    24    4.7134 0.19639         0.84641           
+#Total        25    5.5687                 1.00000  
+permutest(betadisper(jc.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
+#Response: Distances
+#Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.000629 0.0006288 0.0772    999  0.787
+#Residuals 24 0.195389 0.0081412 
+
+w.plob.F <- phyloseq::distance(plob.nrF, method = "wunifrac")
+adonis(w.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
+#             Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1    1.5873 1.58732  6.1132 0.20301  0.002 **
+#  Residuals    24    6.2317 0.25965         0.79699          
+#Total        25    7.8190                 1.00000    
+permutest(betadisper(w.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
+#Response: Distances
+#Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)  
+#Groups     1 0.12916 0.129158 4.8204    999  0.052 .
+#Residuals 24 0.64305 0.026794 
+
+bc.plob.F <- phyloseq::distance(plob.raF, method = "bray")
+adonis(bc.plob.F ~ seq_platform, strata = plob.data.raF$sample_label, data = plob.data.raF)
+#             Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    1.3966 1.39662  4.6805 0.16319  0.001 ***
+#  Residuals    24    7.1615 0.29839         0.83681           
+#Total        25    8.5581                 1.00000            
+permutest(betadisper(bc.plob.F, plob.data.raF$seq_platform, type = "centroid"))
+#          Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)   
+#Groups     1 0.21561 0.215605 7.6258    999   0.01 **
+#  Residuals 24 0.67856 0.028273      
+
+w.plob.F <- phyloseq::distance(plob.raF, method = "wunifrac")
+adonis(w.plob.F ~ seq_platform, strata = plob.data.raF$sample_label, data = plob.data.raF)
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    1.5873 1.58732  6.1132 0.20301  0.001 ***
+#  Residuals    24    6.2317 0.25965         0.79699           
+#Total        25    7.8190                 1.00000       
+permutest(betadisper(w.plob.F, plob.data.raF$seq_platform, type = "centroid"))
+# Response: Distances
+#Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)  
+#Groups     1 0.12916 0.129158 4.8204    999  0.032 *
+#  Residuals 24 0.64305 0.026794 
+
+
+#Filtered for truncation
+##Keep only taxa that have > 1% relative abundance in each sample
+physeq.raF = filter_taxa(physeq.ra, function(x) mean(x) < .01,TRUE)
+rmtaxa = taxa_names(physeq.raF)
+alltaxa = taxa_names(physeq.ra)
+
+myTaxa = alltaxa[!alltaxa %in% rmtaxa]
+
+physeq.nrF <- prune_taxa(myTaxa,physeq.nr)
+tax_table(physeq.nrF) #14 taxa
+
+mfol.nrF <- subset_samples(physeq.nrF, field_host_name == "Montipora foliosa")
+mfol.data.nrF <- as(sample_data(mfol.nrF), "data.frame")
+plob.nrF <- subset_samples(physeq.nrF, field_host_name == "Porites lobata")
+plob.data.nrF <- as(sample_data(plob.nrF), "data.frame")
+
+
+mfol.raF <- transform_sample_counts(mfol.nrF, function(x) x/ sum(x))
+mfol.data.raF <- as(sample_data(mfol.raF), "data.frame")
+plob.raF <- transform_sample_counts(plob.nrF, function(x) x/ sum(x)) 
+plob.data.raF <- as(sample_data(plob.raF), "data.frame")
+
+
+
+jc.mfol.F <- phyloseq::distance(mfol.nrF, method = "jaccard", binary = TRUE)
+adonis(jc.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
+#            Df SumsOfSqs MeanSqs F.Model     R2 Pr(>F)   
+#seq_platform  1    0.5831 0.58313  3.0894 0.1338  0.007 **
+#  Residuals    20    3.7751 0.18876         0.8662          
+#Total        21    4.3582                 1.0000 
+permutest(betadisper(jc.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
+#            Df   Sum Sq  Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.038352 0.038352 2.5867    999  0.119
+#Residuals 20 0.296531 0.014827 
+
+un.mfol.F <- phyloseq::distance(mfol.nrF, method = "unifrac")
+adonis(un.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
+#      Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1    0.5047 0.50472  3.4255 0.14623  0.003 **
+#  Residuals    20    2.9469 0.14734         0.85377          
+#Total        21    3.4516                 1.00000  
+permutest(betadisper(un.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
+# esponse: Distances
+#Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.00385 0.003853 0.1941    999   0.66
+#Residuals 20 0.39709 0.019855   
+
+bc.F <- phyloseq::distance(mfol.raF, method = "bray")
+adonis(bc.F ~ seq_platform, strata = mfol.data.raF$sample_label, data = mfol.data.raF)
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+#seq_platform  1    0.4472 0.44718   1.295 0.06081  0.026 *
+#  Residuals    20    6.9065 0.34532         0.93919         
+#Total        21    7.3537                 1.00000  
+permutest(betadisper(bc.F, mfol.data.raF$seq_platform, type = "centroid"))
+#          Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.000479 0.0004792 0.0991    999  0.763
+#Residuals 20 0.096659 0.0048329 
+
+
+w.mfol.F <- phyloseq::distance(mfol.raF, method = "wunifrac")
+adonis(w.mfol.F ~ seq_platform, strata = mfol.data.raF$sample_label, data = mfol.data.raF)
+#         Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+#seq_platform  1    0.2761 0.27614  1.1084 0.05251  0.104
+#Residuals    20    4.9827 0.24913         0.94749       
+#Total        21    5.2588                 1.00000    
+permutest(betadisper(w.mfol.F, mfol.data.raF$seq_platform, type = "centroid"))
+# Response: Distances
+#Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.020272 0.0202724 2.0538    999  0.161
+#Residuals 20 0.197409 0.0098704  
+
+jc.plob.F <- phyloseq::distance(plob.nrF, method = "jaccard", binary = TRUE)
+adonis(jc.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
+#               Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    0.8110 0.81101  4.8862 0.16915  0.001 ***
+#  Residuals    24    3.9835 0.16598         0.83085           
+#Total        25    4.7945                 1.00000  
+permutest(betadisper(jc.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
+#Response: Distances
+#Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
+#Groups     1 0.003648 0.0036477 0.3562    999  0.533
+#Residuals 24 0.245744 0.0102393     
+
+u.plob.F <- phyloseq::distance(plob.nrF, method = "unifrac")
+adonis(u.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
+#      
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    1.2789 1.27892  9.5091 0.28378  0.001 ***
+#  Residuals    24    3.2279 0.13449         0.71622           
+#Total        25    4.5068                 1.00000         
+permutest(betadisper(u.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
+#Response: Distances
+#Df Sum Sq  Mean Sq      F N.Perm Pr(>F)  
+#Groups     1 0.0593 0.059301 4.2282    999  0.047 *
+#  Residuals 24 0.3366 0.014025   
+
+bc.plob.F <- phyloseq::distance(plob.raF, method = "bray")
+adonis(bc.plob.F ~ seq_platform, strata = plob.data.raF$sample_label, data = plob.data.raF)
+
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#seq_platform  1    1.2711 1.27112   3.971 0.14197  0.001 ***
+#  Residuals    24    7.6825 0.32011         0.85803           
+#Total        25    8.9536                 1.00000  
+permutest(betadisper(bc.plob.F, plob.data.raF$seq_platform, type = "centroid"))
+#          Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)  
+#Groups     1 0.19285 0.192854 7.0351    999  0.019 *
+#  Residuals 24 0.65792 0.027413 
+
+w.plob.F <- phyloseq::distance(plob.raF, method = "wunifrac")
+adonis(w.plob.F ~ seq_platform, strata = plob.data.raF$sample_label, data = plob.data.raF)
+#         Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+#seq_platform  1    1.6103 1.61034  6.2195 0.20581  0.002 **
+#  Residuals    24    6.2141 0.25892         0.79419          
+#Total        25    7.8244                 1.00000          
+permutest(betadisper(w.plob.F, plob.data.raF$seq_platform, type = "centroid"))
+#Response: Distances
+#Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)  
+#Groups     1 0.13090 0.130899 4.7972    999  0.049 *
+#  Residuals 24 0.65488 0.027287     
+
+
 #Differential Abundance Analysis
 
 library(DESeq2)
