@@ -1,4 +1,4 @@
-##97%-clustered OTU Statistical Analyses for comparison MS##
+##97% clustered OTU Statistical Analyses for comparison MS##
 
 library(qiime2R)
 library(phyloseq)
@@ -700,7 +700,7 @@ permutest(betadisper(jc.mfol.fam, mfol.fam.nr.data$seq_platform, type = "centroi
 #    Df   Sum Sq   Mean Sq      F N.Perm Pr(>F)
 #Groups     1 0.007014 0.0070145 1.8274    999  0.206
 #Residuals 20 0.076771 0.0038386 
-un.mfol.fam <- phyloseq::distance(mfol.fam.nr, method = "unifrac")
+un.mfol.fam <- phyloseq::distance(mfol.fam.nr, method = "uunifrac")
 adonis(un.mfol.fam ~ seq_platform, strata = mfol.fam.nr.data$sample_label, data = mfol.fam.nr.data)
 #       Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
 #seq_platform  1    0.3752 0.37517  1.9126 0.08728  0.002 **
@@ -899,7 +899,7 @@ permutest(betadisper(jc.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.014855 0.014856 1.2217    999  0.268
 #Residuals 20 0.243200 0.012160    
 
-un.mfol.F <- phyloseq::distance(mfol.nrF, method = "unifrac")
+un.mfol.F <- phyloseq::distance(mfol.nrF, method = "uunifrac")
 adonis(un.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
 #seq_platform  1    0.5063 0.50630  3.1342 0.13548  0.002 **
@@ -932,7 +932,7 @@ permutest(betadisper(jc.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.003206 0.0032056 0.4283    999  0.495
 #Residuals 21 0.157184 0.0074849 
 
-u.plob.F <- phyloseq::distance(plob.nrF, method = "unifrac")
+u.plob.F <- phyloseq::distance(plob.nrF, method = "uunifrac")
 adonis(u.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
 #   Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
 #seq_platform  1    0.8320 0.83199  4.1793 0.16598  0.001 ***

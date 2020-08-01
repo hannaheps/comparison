@@ -735,7 +735,7 @@ permutest(betadisper(jc.plob.fam, plob.fam.nr.data$seq_platform, type = "centroi
 #  Residuals 24 0.032780 0.0013658      
 
 
-un.plob.fam <- phyloseq::distance(plob.fam.nr, method = "unifrac")
+un.plob.fam <- phyloseq::distance(plob.fam.nr, method = "uunifrac")
 adonis(un.plob.fam ~ seq_platform, strata = plob.fam.nr.data$sample_label, data = plob.fam.nr.data)
 #     Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
 #seq_platform  1    0.4218 0.42182  2.2349 0.08519  0.004 **
@@ -843,7 +843,7 @@ permutest(betadisper(jc.plob.phy, plob.phy.nr.data$seq_platform, type = "centroi
 #Groups     1 0.11703 0.117034 22.39    999  0.002 **
 #  Residuals 24 0.12545 0.005227 
 
-un.plob.phy <- phyloseq::distance(plob.phy.nr, method = "unifrac")
+un.plob.phy <- phyloseq::distance(plob.phy.nr, method = "uunifrac")
 adonis(bc.plob.phy ~ seq_platform, strata = plob.phy.nr.data$sample_label, data = plob.phy.nr.data)
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
 #seq_platform  1    0.6428 0.64283  4.8871 0.16918  0.001 ***
@@ -886,7 +886,7 @@ permutest(betadisper(jc.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.016105 0.016105 1.292    999  0.285
 #Residuals 20 0.249292 0.012465 
 
-un.mfol.F <- phyloseq::distance(mfol.nrF, method = "unifrac")
+un.mfol.F <- phyloseq::distance(mfol.nrF, method = "uunifrac")
 adonis(un.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
 #seq_platform  1   0.37564 0.37564  2.7376 0.1204  0.003 **
@@ -932,12 +932,12 @@ permutest(betadisper(jc.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.000629 0.0006288 0.0772    999  0.787
 #Residuals 24 0.195389 0.0081412 
 
-w.plob.F <- phyloseq::distance(plob.nrF, method = "wunifrac")
-adonis(w.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
+u.plob.F <- phyloseq::distance(plob.nrF, method = "uunifrac")
+adonis(u.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
 #             Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
-#seq_platform  1    1.5873 1.58732  6.1132 0.20301  0.002 **
-#  Residuals    24    6.2317 0.25965         0.79699          
-#Total        25    7.8190                 1.00000    
+#seq_platform  1    1.1329 1.13288  7.0829 0.22787  0.001 ***
+#Residuals    24    3.8387 0.15995         0.77213           
+#Total        25    4.9716                 1.00000    
 permutest(betadisper(w.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
 #Response: Distances
 #Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)  
@@ -1003,7 +1003,7 @@ permutest(betadisper(jc.mfol.F, mfol.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.038352 0.038352 2.5867    999  0.119
 #Residuals 20 0.296531 0.014827 
 
-un.mfol.F <- phyloseq::distance(mfol.nrF, method = "unifrac")
+un.mfol.F <- phyloseq::distance(mfol.nrF, method = "uunifrac")
 adonis(un.mfol.F ~ seq_platform, strata = mfol.data.nrF$sample_label, data = mfol.data.nrF)
 #      Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
 #seq_platform  1    0.5047 0.50472  3.4255 0.14623  0.003 **
@@ -1051,7 +1051,7 @@ permutest(betadisper(jc.plob.F, plob.data.nrF$seq_platform, type = "centroid"))
 #Groups     1 0.003648 0.0036477 0.3562    999  0.533
 #Residuals 24 0.245744 0.0102393     
 
-u.plob.F <- phyloseq::distance(plob.nrF, method = "unifrac")
+u.plob.F <- phyloseq::distance(plob.nrF, method = "uunifrac")
 adonis(u.plob.F ~ seq_platform, strata = plob.data.nrF$sample_label, data = plob.data.nrF)
 #      
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
@@ -1160,171 +1160,7 @@ sigtab.plob$Genus = factor(as.character(sigtab.plob$Genus), levels=names(x))
 plob.deseq <- ggplot(sigtab.plob, aes(x=Genus, y=log2FoldChange, color=Phylum)) + geom_point(size=6) + 
   ggtitle("Differential Abundance - P. lobata") +
   theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust=0.5)) 
-
-
-
-
-##ANCOM###
-
-#Make sure to load the functions using the script ANCOM.script
-#Split data by field host
-
-physeq.nr.mfol <- subset_samples(physeq.nr, field_host_name == "Montipora foliosa")
-physeq.nr.plob <- subset_samples(physeq.nr, field_host_name == "Porites lobata")
-#First filter out any taxa that have less than 10 reads across all samples
-physeq.nr.mfol <- prune_taxa(taxa_sums(physeq.nr.mfol) > 10, physeq.nr.mfol)
-data.nr.mfol <- as(sample_data(physeq.nr.mfol), "data.frame")
-physeq.nr.plob <- prune_taxa(taxa_sums(physeq.nr.plob) > 10, physeq.nr.plob)
-data.nr.plob <- as(sample_data(physeq.nr.plob), "data.frame")
-
-OTU.mfol <- otu_table(physeq.nr.mfol)
-OTU.plob <- otu_table(physeq.nr.plob)
-OTU <- otu_table(physeq.nr)
-
-##For all 
-
-feature_table <- OTU
-meta_data <- data.nr
-meta_data$Sample.ID <- as.character(meta_data$sample)
-sample_var <- "Sample.ID"
-group_var <- "seq_platform"
-out_cut <- 0.05
-zero_cut <- 0.90
-lib_cut <- 1000
-neg_lb <- TRUE
-
-pre_pro <- feature_table_pre_process(feature_table, meta_data, sample_var, group_var, 
-                                     out_cut, zero_cut, lib_cut, neg_lb)
-feature_table <- pre_pro$feature_table
-meta_data <- pre_pro$meta_data
-struc_zero <- pre_pro$structure_zeros
-
-#Step 2 run the ANCOM
-
-main_var <- "seq_platform"
-p_adj_method <- "BH"
-alpha <- 0.05
-adj_formula <- NULL
-rand_formula <- NULL
-
-res <- ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, alpha,
-             adj_formula, rand_formula)
-
-head(res$out)
-View(res)
-write_csv(res$out, "~/Desktop/comparison/res_ancom.csv")
-
-#Step 3 volcano plot
-#number of taxa except structural zeros
-n_taxa <- ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
-#Cutoff values for declaring differentially abundant taxa
-cut_off <-  c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
-names(cut_off) <-  c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
-
-#Annotation & Figure
-dat_ann <- data.frame(x = min(res$fig$data$x), y = cut_off["detected_0.7"], label = "W[0.7]")
-fig <- res$fig +
-  geom_hline(yintercept = cut_off["detected_0.7"], linetype = "dashed") + 
-  geom_text(data = dat_ann, aes(x = x, y = y, label = label), 
-            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
-fig  
-
-#find taxonomy of significantly different features(ASVs)
-ancom_results_mfol <- res$out
-ancom_mfol_true_0.7 <- ancom_results_mfol %>% filter(detected_0.7 == "TRUE")
-ancom_results_true_0.6 <- ancom_results %>% filter(detected_0.6 == "TRUE")
-
-tax_table <- data.frame(tax_table(physeq.nr))
-
-
-tax_match = match(ancom_mfol_true_0.7$taxa_id, rownames(tax_table))
-tax_match_res = tax_table[tax_match,]
-head(tax_match_res)
-View(tax_match_res)
-write.csv(tax_match_res, "~/Desktop/comparison/tax_match.csv")
-#40cca0895b09695fccc2a9b98eed3b8d Rickettsiales 
-#775a42986d3850462cc4afe534671365 Vibrio
-
-
-##How about RA of endozoicomonas and Vibrio?
-
-endo.mfol <- subset_taxa(mfol.ra, Genus == "Endozoicomonas")
-endo.mfol.data <- as(sample_data(endo.mfol), "data.frame")
-endo.plob <- subset_taxa(plob.ra, Genus == "Endozoicomonas")
-endo.plob.data <- as(sample_data(endo.plob), "data.frame")
-
-endo.mfol.melt <- psmelt(endo.mfol)
-
-sum.mfol.endo <- ddply(endo.mfol.melt, c("seq_platform", "Species"), summarise,
-                       N = length(Abundance), 
-                       mean = mean(Abundance),
-                       sd = sd(Abundance), 
-                       se = sd/sqrt(N)
-)
-
-ggplot(sum.mfol.endo, aes(x = seq_platform, y = mean)) +
-  geom_bar(stat = "identity", aes(fill = Species, colour = Species)) +
-  #geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.1) +
-  xlab("\nSequencing Platform") +
-  ylab("Relative Abundance\n") +
-  ggtitle("Endozoicomonas - M. foliosa") 
-
-
-
-endo.plob.melt <- psmelt(endo.plob)
-
-sum.plob.endo <- ddply(endo.plob.melt, c("seq_platform", "Species"), summarise,
-                       N = length(Abundance), 
-                       mean = mean(Abundance),
-                       sd = sd(Abundance), 
-                       se = sd/sqrt(N)
-)
-
-ggplot(sum.plob.endo, aes(x = seq_platform, y = mean)) +
-  geom_bar(stat = "identity", aes(fill = Species, colour = Species)) +
-  #geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.1) +
-  xlab("\nSequencing Platform") +
-  ylab("Relative Abundance\n") +
-  ggtitle("Endozoicomonas - P. lobata") 
-
-
-
-vib.mfol <- subset_taxa(mfol.ra, Genus == "Vibrio")
-vib.plob <- subset_taxa(plob.ra, Genus == "Vibrio")
-vib.mfol.melt <- psmelt(vib.mfol)
-vib.plob.melt <- psmelt(vib.plob)
-
-sum.mfol.vib <- ddply(vib.mfol.melt, c("seq_platform", "Species"), summarise,
-                      N = length(Abundance), 
-                      mean = mean(Abundance),
-                      sd = sd(Abundance), 
-                      se = sd/sqrt(N)
-)
-
-ggplot(sum.mfol.vib, aes(x = seq_platform, y = mean)) +
-  geom_bar(stat = "identity", aes(fill = Species, colour = Species)) +
-  #geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.1) +
-  xlab("\nSequencing Platform") +
-  ylab("Relative Abundance\n") +
-  ggtitle("Vibrio - M.fol") 
-
-
-sum.plob.vib <- ddply(vib.plob.melt, c("seq_platform", "Species"), summarise,
-                      N = length(Abundance), 
-                      mean = mean(Abundance),
-                      sd = sd(Abundance), 
-                      se = sd/sqrt(N)
-)
-
-ggplot(sum.plob.vib, aes(x = seq_platform, y = mean)) +
-  geom_bar(stat = "identity", aes(fill = Species, colour = Species)) +
-  #geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.1) +
-  xlab("\nSequencing Platform") +
-  ylab("Relative Abundance\n") +
-  ggtitle("Vibrio - P. lobata") 
-
-
-
+ggsave("~/Desktop/deseq_plob_asv.pdf)")
 
 ##What happens if you remove endozoicomonas from the entire dataset? 
 mfol.nr.ne <- subset_taxa(mfol.nr, Family != "Endozoicomonadaceae")
@@ -1358,8 +1194,6 @@ permutest(betadisper(bc.mfol.ne, data.mfol.ra.ne$seq_platform, type = "centroid"
 #Df    Sum Sq    Mean Sq      F N.Perm Pr(>F)
 #Groups     1 0.0000017 0.00000167 0.0017    999  0.966
 #Residuals 20 0.0196978 0.00098489   
-
-
 jc.plob.ne <- phyloseq::distance(plob.nr.ne, method = "jaccard", binary = TRUE)
 adonis(jc.plob.ne ~ seq_platform, strata = data.plob.nr.ne$sample_label, data = data.plob.nr.ne)
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
@@ -1371,7 +1205,6 @@ permutest(betadisper(jc.plob.ne, data.plob.nr.ne$seq_platform, type = "centroid"
 #        Df   Sum Sq    Mean Sq     F N.Perm Pr(>F)
 #Groups     1 0.000493 0.00049305 0.401    999   0.51
 #Residuals 24 0.029512 0.00122966   
-
 bc.plob.ne <- phyloseq::distance(plob.ra.ne, method = "bray")
 adonis(bc.plob.ne ~ seq_platform, strata = data.plob.ra.ne$sample_label, data = data.plob.ra.ne)
 #Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
@@ -1383,3 +1216,9 @@ permutest(betadisper(bc.plob.ne, data.plob.ra.ne$seq_platform, type = "centroid"
 #Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)   
 #Groups     1 0.22919 0.229192 9.6371    999  0.004 **
 #  Residuals 24 0.57077 0.023782  
+
+
+
+##Isolate endozoicomonas and vibrio asvs to check for differences in Tm & GC content (%)
+library(TmCalculator)
+
