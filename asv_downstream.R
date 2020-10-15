@@ -1260,6 +1260,8 @@ GC("TACGGAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGCATGCAGGTGGTTAGTTAAGTCAGATGTGAAA
 Tm_GC("TACGGAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGCATGCAGGTGGTTAGTTAAGTCAGATGTGAAAGCCCGGGGCTCAACCTCGGAACTGCATTTGAAACTGGCTGACTA", ambiguous = FALSE, userset = NULL, variant = "Primer3Plus",
       Na = 50, K = 0, Tris = 0, Mg = 0, dNTPs = 0, saltcorr = 0, mismatch = TRUE)
 
+##Do this ^ for each sequence and add to a spreadsheet (I am sure there is a way to loop this...)
+
 seqs <- read.csv("~/Desktop/comparison/vib_endo_seqs.csv", header = TRUE)
 seqs.vibrio <- seqs %>% filter(taxon == "Vibrio")
 seqs.endo <- seqs %>% filter(taxon == "Endo")
