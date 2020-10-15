@@ -398,6 +398,10 @@ plob.data.nr <- as(sample_data(plob.nr), "data.frame")
 plob.ra <- transform_sample_counts(plob.nr, function(x) x/ sum(x)) 
 plob.data.ra <- as(sample_data(plob.ra), "data.frame")
 
+tax_table(mfol.nr) #5512 taxa
+tax_table(plob.nr) #5512 taxa
+
+
 
 ## Binary Jaccard
 #Montipora foliosa
@@ -1222,3 +1226,120 @@ permutest(betadisper(bc.plob.ne, data.plob.ra.ne$seq_platform, type = "centroid"
 ##Isolate endozoicomonas and vibrio asvs to check for differences in Tm & GC content (%)
 library(TmCalculator)
 
+#Subset data into hiseq vs. miseq
+endo <- subset_taxa(physeq.nr, Genus == "Endozoicomonas")
+vibrio <- subset_taxa(physeq.nr, Genus == "Vibrio")
+
+#Isolate endo and vibrio and remove taxa that have 0 abundance
+miseq.endo <- subset_samples(endo, seq_platform == "MiSeq")
+miseq.endo <- prune_taxa(taxa_sums(miseq.endo) >= 1, miseq.endo)
+hiseq.endo <- subset_samples(endo, seq_platform == "HiSeq")
+hiseq.endo <- prune_taxa(taxa_sums(hiseq.endo) >= 1, hiseq.endo)
+
+miseq.vib <- subset_samples(vibrio, seq_platform == "MiSeq")
+miseq.vib <- prune_taxa(taxa_sums(miseq.vib) >= 1, miseq.vib)
+hiseq.vib <- subset_samples(vibrio, seq_platform == "HiSeq")
+hiseq.vib <- prune_taxa(taxa_sums(hiseq.vib) >=1, hiseq.vib)
+
+#Export feature IDs as rownames of taxonomy table 
+#Use the feature IDs to find the sequences in your rep-seqs.qzv file in 
+#view.qiime2.org
+endo.hs.tax <-rownames(tax_table(hiseq.endo))
+endo.ms.tax <- rownames(tax_table(miseq.endo))
+vib.hs.tax <-rownames(tax_table(hiseq.vib))
+vib.ms.tax <- rownames(tax_table(miseq.vib))
+
+write.csv(endo.hs.tax, "~/Desktop/comparison/hs_endo.csv")
+write.csv(endo.ms.tax, "~/Desktop/comparison/ms_endo.csv")
+write.csv(vib.hs.tax, "~/Desktop/comparison/hs_vib.csv")
+write.csv(vib.ms.tax, "~/Desktop/comparison/ms_vib.csv")
+
+#use TmCalculator to find the melting temp and GC content 
+
+GC("TACGGAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGCATGCAGGTGGTTAGTTAAGTCAGATGTGAAAGCCCGGGGCTCAACCTCGGAACTGCATTTGAAACTGGCTGACTA", ambiguous = FALSE, totalnt = FALSE)
+Tm_GC("TACGGAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGCATGCAGGTGGTTAGTTAAGTCAGATGTGAAAGCCCGGGGCTCAACCTCGGAACTGCATTTGAAACTGGCTGACTA", ambiguous = FALSE, userset = NULL, variant = "Primer3Plus",
+      Na = 50, K = 0, Tris = 0, Mg = 0, dNTPs = 0, saltcorr = 0, mismatch = TRUE)
+
+seqs <- read.csv("~/Desktop/comparison/vib_endo_seqs.csv", header = TRUE)
+seqs.vibrio <- seqs %>% filter(taxon == "Vibrio")
+seqs.endo <- seqs %>% filter(taxon == "Endo")
+
+library(nlme)
+library(sjPlot)
+library(effects)
+qq.line = function(x) {
+  # following four lines from base R's qqline()
+  y <- quantile(x[!is.na(x)], c(0.25, 0.75))
+  x <- qnorm(c(0.25, 0.75))
+  slope <- diff(y)/diff(x)
+  int <- y[1L] - slope * x[1L]
+  return(c(int = int, slope = slope))
+}
+
+##GC content
+library(nlme)
+gc.endo.lm <- lm(gc_content ~ seq_platform, data = seqs.endo)
+gc.end.lm.log <- lm(log(gc_content) ~ seq_platform, data = seqs.endo)
+gc.end.lm.sqrt <- lm(sqrt(gc_content) ~ seq_platform, data = seqs.endo)
+AIC(gc.endo.lm, gc.end.lm.log,gc.end.lm.sqrt)
+
+plot(gc.end.lm.log)
+qq.line(resid(gc.end.lm.log))
+plot_grid(plot_model(gc.end.lm.log, type = "diag"))
+plot(allEffects(gc.end.lm.log))
+plot_model(gc.end.lm.log, type = "eff", terms = "seq_platform")
+anova(gc.end.lm.log)
+summary(gc.end.lm.log)
+#             Df    Sum Sq   Mean Sq F value  Pr(>F)  
+#seq_platform  2 0.0077698 0.0038849  2.8584 0.08682 .
+#Residuals    16 0.0217463 0.0013591 
+
+
+gc.vib.lm <- lm(gc_content ~ seq_platform, data = seqs.vibrio)
+gc.vib.lm.log <- lm(log(gc_content) ~ seq_platform, data = seqs.vibrio)
+gc.vib.lm.sqrt <- lm(sqrt(gc_content) ~ seq_platform, data = seqs.vibrio)
+AIC(gc.vib.lm, gc.vib.lm.log, gc.vib.lm.sqrt)
+
+plot(gc.vib.lm.log)
+qq.line(resid(gc.vib.lm.log))
+plot_grid(plot_model(gc.vib.lm.log, type = "diag"))
+plot(allEffects(gc.vib.lm.log))
+plot_model(gc.vib.lm.log, type = "eff", terms = "seq_platform")
+anova(gc.vib.lm.log)
+summary(gc.vib.lm.log)
+#             Df   Sum Sq    Mean Sq F value Pr(>F)
+#seq_platform  2 0.000658 0.00032905   0.202  0.818
+#Residuals    35 0.057015 0.00162901 
+
+##Melting Temperature content
+tm.endo.lm <- lm(tm ~ seq_platform, data = seqs.endo)
+tm.endo.lm.log <- lm(log(tm) ~ seq_platform, data = seqs.endo)
+tm.endo.lm.sqrt <- lm(sqrt(tm) ~ seq_platform, data = seqs.endo)
+AIC(tm.endo.lm, tm.endo.lm.log, tm.endo.lm.sqrt)
+
+plot(tm.endo.lm.log)
+qq.line(resid(tm.endo.lm.log))
+plot_grid(plot_model(tm.endo.lm.log, type = "diag"))
+plot(allEffects(tm.endo.lm.log))
+plot_model(tm.endo.lm.log, type = "eff", terms = "seq_platform")
+anova(tm.endo.lm.log)
+summary(tm.endo.lm.log)
+#            Df     Sum Sq    Mean Sq F value  Pr(>F)  
+#seq_platform  2 0.00060482 0.00030241  2.8773 0.08562 .
+#Residuals    16 0.00168165 0.00010510      
+
+tm.vib.lm <- lm(tm ~ seq_platform, data = seqs.vibrio)
+tm.vib.lm.log <- lm(log(tm) ~ seq_platform, data = seqs.vibrio)
+tm.vib.lm.sqrt <- lm(sqrt(tm) ~ seq_platform, data = seqs.vibrio)
+AIC(tm.vib.lm, tm.vib.lm.log, tm.vib.lm.sqrt)
+
+plot(tm.vib.lm.log)
+qq.line(resid(tm.vib.lm.log))
+plot_grid(plot_model(tm.vib.lm.log, type = "diag"))
+plot(allEffects(tm.vib.lm.log))
+plot_model(tm.vib.lm.log, type = "eff", terms = "seq_platform")
+anova(tm.vib.lm.log)
+summary(tm.vib.lm.log)
+#             Df    Sum Sq    Mean Sq F value Pr(>F)
+#seq_platform  2 0.0000555 0.00002775  0.2202 0.8035
+#Residuals    35 0.0044118 0.00012605  
