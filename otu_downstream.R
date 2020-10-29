@@ -159,28 +159,33 @@ hist(erich.mfol$Observed)
 ggqqplot(erich.mfol$Observed)
 hist(sqrt(erich.mfol$Observed))
 ggqqplot(sqrt(erich.mfol$Observed))
+shapiro.test(sqrt(erich.mfol$Observed))
+#results: W = 0.98501, p-value = 0.9752
+
 #t-test
-t.mfol.lob <- t.test(sqrt(Observed) ~ platform, data = erich.mfol, paired = TRUE)
-#results:
+t.mfol.sqOb <- t.test(sqrt(Observed) ~ platform, data = erich.mfol, paired = TRUE)
+#results: t = -0.13484, df = 10, p-value = 0.8954
 
 erich.mfol$sqOb <- sqrt(erich.mfol$Observed)
 #use the function summarySE
-t.mfol.ob.sum <- summarySE(erich.mfol, measurevar = "logOb", groupvars = "platform")
-mfol.ob <- ggplot(t.mfol.ob.sum, aes(y = logOb, x = platform)) + 
-  geom_errorbar(aes(ymin = logOb -se, ymax = logOb +se), width = 0.1) +
+t.mfol.ob.sum <- summarySE(erich.mfol, measurevar = "sqOb", groupvars = "platform")
+mfol.ob <- ggplot(t.mfol.ob.sum, aes(y = sqOb, x = platform)) + 
+  geom_errorbar(aes(ymin = sqOb -se, ymax = sqOb +se), width = 0.1) +
   geom_point() +
   geom_line() +
   scale_y_continuous("Sqrt(Observed Richness)") + 
   theme_classic()
 
 ##P.lobata: Observed Species Richness
-hist(erich.plob$Observed) #skewed
-ggqqplot(erich.plob$Observed) #horseshoe
+hist(erich.plob$Observed) 
+ggqqplot(erich.plob$Observed) 
 hist(log(erich.plob$Observed))
 ggqqplot(log(erich.plob$Observed))
+shapiro.test(log(erich.plob$Observed))
+#results: W = 0.94146, p-value = 0.2122
 
 t.plob.ob <- t.test(log(Observed) ~ platform, data = erich.plob, paired = TRUE)
-#results: 
+#results: t = 2.0437, df = 10, p-value = 0.06822
 
 erich.plob$logOb <- log(erich.plob$Observed)
 #use the function summarySE
@@ -195,17 +200,17 @@ plob.ob <- ggplot(t.plob.ob.sum, aes(y = logOb, x = platform)) +
 #M. aquituberculata: Shannon
 hist(erich.mfol$Shannon)
 ggqqplot(erich.mfol$Shannon)
-hist(log(erich.mfol$Shannon))
-ggqqplot(log(erich.mfol$Shannon))
+shapiro.test(erich.mfol$Shannon)
+#results:W = 0.98834, p-value = 0.9933
+
 #t-test
 t.mfol.sh <- t.test(Shannon ~ platform, data = erich.mfol, paired = TRUE)
-#results: 
+#results: t = 0.057506, df = 10, p-value = 0.9553
 
-erich.mfol$logSh <- log(erich.mfol$Shannon)
 #use the function summarySE
-t.mfol.sh.sum <- summarySE(erich.mfol, measurevar = "logSh", groupvars = "platform")
-mfol.sh <- ggplot(t.mfol.sh.sum, aes(y = logSh, x = platform)) + 
-  geom_errorbar(aes(ymin = logSh -se, ymax = logSh +se), width = 0.1) +
+t.mfol.sh.sum <- summarySE(erich.mfol, measurevar = "Shannon", groupvars = "platform")
+mfol.sh <- ggplot(t.mfol.sh.sum, aes(y = Shannon, x = platform)) + 
+  geom_errorbar(aes(ymin = Shannon -se, ymax = Shannon +se), width = 0.1) +
   geom_point() +
   geom_line() +
   scale_y_continuous("Shannon Diversity Index") + 
@@ -215,22 +220,20 @@ mfol.sh <- ggplot(t.mfol.sh.sum, aes(y = logSh, x = platform)) +
 #P. lobata: Shannon Diversity
 hist(erich.plob$Shannon)
 ggqqplot(erich.plob$Shannon)
-hist(log(erich.plob$Shannon))
-ggqqplot(log(erich.plob$Shannon))
-hist(sqrt(erich.plob$Shannon))
-ggqqplot(sqrt(erich.plob$Shannon))
-#t-test
-t.plob.sh <- t.test(sqrt(Shannon) ~ platform, data = erich.plob, paired = TRUE)
-#results:
+shapiro.test(erich.plob$Shannon)
+#results: W = 0.95476, p-value = 0.3911
 
-erich.plob$sqrtSh <- sqrt(erich.plob$Shannon)
+#t-test
+t.plob.sh <- t.test(Shannon ~ platform, data = erich.plob, paired = TRUE)
+#results:t = 2.2674, df = 10, p-value = 0.04678
+
 #use the function summarySE
-t.plob.sh.sum <- summarySE(erich.plob, measurevar = "sqrtSh", groupvars = "platform")
-plob.sh <- ggplot(t.plob.sh.sum, aes(y = sqrtSh, x = platform)) + 
-  geom_errorbar(aes(ymin = sqrtSh -se, ymax = sqrtSh +se), width = 0.1) +
+t.plob.sh.sum <- summarySE(erich.plob, measurevar = "Shannon", groupvars = "platform")
+plob.sh <- ggplot(t.plob.sh.sum, aes(y = Shannon, x = platform)) + 
+  geom_errorbar(aes(ymin = Shannon -se, ymax = Shannon +se), width = 0.1) +
   geom_point() +
   geom_line() +
-  scale_y_continuous("sqrt(Shannon Diversity Index)") + 
+  scale_y_continuous("Shannon Diversity Index") + 
   theme_classic()
 
 ##Faith's PD
@@ -240,9 +243,12 @@ hist(erich.mfol$FaithPD)
 ggqqplot(erich.mfol$FaithPD)
 hist(log(erich.mfol$FaithPD))
 ggqqplot(log(erich.mfol$FaithPD))
+shapiro.test(log(erich.mfol$FaithPD))
+#results: W = 0.92606, p-value = 0.1016
+
 #t-test
 t.mfol.fpd <- t.test(log(FaithPD) ~ platform, data = erich.mfol, paired = TRUE)
-#results: t = 0.84278, df = 10, p-value = 0.4191
+#results: t = -0.69056, df = 10, p-value = 0.5056
 
 erich.mfol$logFPD <- log(erich.mfol$FaithPD)
 #use the function summarySE
@@ -259,9 +265,12 @@ hist(erich.plob$FaithPD)
 ggqqplot(erich.plob$FaithPD)
 hist(log(erich.plob$FaithPD))
 ggqqplot(log(erich.plob$FaithPD))
+shapiro.test(log(erich.plob$FaithPD))
+#results: W = 0.92675, p-value = 0.105
+
 #t-test
 t.plob.fpd <- t.test(log(FaithPD) ~ platform, data = erich.plob, paired = TRUE)
-#results: t = 1.5828, df = 12, p-value = 0.1395
+#results: t = 2.4852, df = 10, p-value = 0.03225
 
 erich.plob$logFPD <- log(erich.plob$FaithPD)
 #use the function summarySE
@@ -290,9 +299,12 @@ hist(erich.nr.mfol$Chao1)
 ggqqplot(erich.nr.mfol$Chao1)
 hist(log(erich.nr.mfol$Chao1))
 ggqqplot(log(erich.nr.mfol$Chao1))
+shapiro.test(log(erich.nr.mfol$Chao1))
+#results: W = 0.95407, p-value = 0.3793
+
 #t-test
 t.mfol.ch <- t.test(log(Chao1) ~ platform, data = erich.nr.mfol, paired = TRUE)
-#results: t = 1.6691, df = 10, p-value = 0.1261
+#results:t = 1.4041, df = 10, p-value = 0.1906
 
 erich.nr.mfol$logCh <- log(erich.nr.mfol$Chao1)
 #use the function summarySE
@@ -309,10 +321,12 @@ hist(erich.nr.plob$Chao1)
 ggqqplot(erich.nr.plob$Chao1)
 hist(log(erich.nr.plob$Chao1))
 ggqqplot(log(erich.nr.plob$Chao1))
+shapiro.test(log(erich.nr.plob$Chao1))
+#results: W = 0.95679, p-value = 0.4272
 
 #t-test
 t.plob.ch <- t.test(log(Chao1) ~ platform, data = erich.nr.plob, paired = TRUE)
-#results: t = 1.9151, df = 12, p-value = 0.07961
+#results:t = 1.7554, df = 10, p-value = 0.1097 
 
 erich.nr.plob$logCh <- log(erich.nr.plob$Chao1)
 #use the function summarySE
@@ -323,7 +337,6 @@ plob.ch <- ggplot(t.plob.ch.sum, aes(y = logCh, x = platform)) +
   geom_line() +
   scale_y_continuous("log(Chao1)") + 
   theme_classic()
-
 
 
 ##Betadiversity
