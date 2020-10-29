@@ -136,128 +136,158 @@ ggsave("~/Desktop/barplot_phy_asvs.pdf")
 
 
 #Alpha diversity
-#Observed Sp. Richness and Shannon
+
+#Observed Sp. Richness, Shannon, and Faith's PD using rarefied data (Chao1 uses unrarefied, see below)
+#First need to input function estimate_richness_wPD (uses the estimate_richness command in phyloseq
+#but adds faith's phylogenetic distance metric to it as "FaithPD")
 erich <- estimate_richness_wPD(physeq.r, measures = c("Observed", "Shannon", "FaithPD"))
 erich$platform <- data.r$seq_platform
 erich$sample <- data.r$sample_label
 erich$species <- data.r$field_host_name
 
+#Separate by host species and re-order data for use in paired t-tests
 erich.mfol <- erich %>% filter(species == "Montipora foliosa")
-
+erich.mfol <-  erich.mfol[order(erich.mfol$platform, erich.mfol$sample),]
 erich.plob <- erich %>% filter(species == "Porites lobata")
+erich.plob <-  erich.plob[order(erich.plob$platform, erich.plob$sample),]
+
+#Paired t-tests for all Alpha diversity metrics
+#need the following package for qq-plots to check normality
+library(ggpubr)
+
+##M. aequituberculata: Observed Sp. Richness
+#Check normality
+hist(erich.mfol$Observed)
+ggqqplot(erich.mfol$Observed)
+hist(log(erich.mfol$Observed))
+ggqqplot(log(erich.mfol$Observed))
+shapiro.test(log(erich.mfol$Observed))
+#results: W = 0.94351, p-value = 0.2336
+
+#t-test
+t.mfol.lob <- t.test(log(Observed) ~ platform, data = erich.mfol, paired = TRUE)
+#results: t = 0.59244, df = 10, p-value = 0.5667
+
+erich.mfol$logOb <- log(erich.mfol$Observed)
+#use the function summarySE
+t.mfol.ob.sum <- summarySE(erich.mfol, measurevar = "logOb", groupvars = "platform")
+mfol.ob <- ggplot(t.mfol.ob.sum, aes(y = logOb, x = platform)) + 
+  geom_errorbar(aes(ymin = logOb -se, ymax = logOb +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Observed Richness)") + 
+  theme_classic()
+
+##P.lobata: Observed Species Richness
+hist(erich.plob$Observed) #skewed
+ggqqplot(erich.plob$Observed) #horseshoe
+hist(log(erich.plob$Observed))
+ggqqplot(log(erich.plob$Observed))
+shapiro.test(log(erich.plob$Observed))
+#results: W = 0.94985, p-value = 0.23
+
+t.plob.ob <- t.test(log(Observed) ~ platform, data = erich.plob, paired = TRUE)
+#results: t = 1.1769, df = 12, p-value = 0.262
+
+erich.plob$logOb <- log(erich.plob$Observed)
+#use the function summarySE
+t.plob.ob.sum <- summarySE(erich.plob, measurevar = "logOb", groupvars = "platform")
+plob.ob <- ggplot(t.plob.ob.sum, aes(y = logOb, x = platform)) + 
+  geom_errorbar(aes(ymin = logOb -se, ymax = logOb +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Observed Richness)") + 
+  theme_classic()
+
+#M. aquituberculata: Shannon
+hist(erich.mfol$Shannon)
+ggqqplot(erich.mfol$Shannon)
+shapiro.test(erich.mfol$Shannon)
+#results: W = 0.98118, p-value = 0.9334
+
+#t-test
+t.mfol.sh <- t.test(Shannon ~ platform, data = erich.mfol, paired = TRUE)
+#results: t = 0.87633, df = 10, p-value = 0.4014
+
+#use the function summarySE
+t.mfol.sh.sum <- summarySE(erich.mfol, measurevar = "Shannon", groupvars = "platform")
+mfol.sh <- ggplot(t.mfol.sh.sum, aes(y = Shannon, x = platform)) + 
+  geom_errorbar(aes(ymin = Shannon -se, ymax = Shannon +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("Shannon Diversity Index") + 
+  theme_classic()
 
 
-#Model fit for Alpha diversity 
+#P. lobata: Shannon Diversity
+hist(erich.plob$Shannon)
+ggqqplot(erich.plob$Shannon)
+hist(log(erich.plob$Shannon))
+ggqqplot(log(erich.plob$Shannon))
+shapiro.test(log(erich.plob$Shannon))
+#results: W = 0.93411, p-value = 0.09711
 
-library(nlme)
-library(sjPlot)
-library(effects)
-qq.line = function(x) {
-  # following four lines from base R's qqline()
-  y <- quantile(x[!is.na(x)], c(0.25, 0.75))
-  x <- qnorm(c(0.25, 0.75))
-  slope <- diff(y)/diff(x)
-  int <- y[1L] - slope * x[1L]
-  return(c(int = int, slope = slope))
-}
+#t-test
+t.plob.sh <- t.test(log(Shannon) ~ platform, data = erich.plob, paired = TRUE)
+#results: t = 1.002, df = 12, p-value = 0.3361
 
-#mfol - Observed
-sqOb.model.a <- lme(log(Observed) ~ platform, random = ~1|sample, data = erich.mfol, method = "REML")
+erich.plob$logSh <- log(erich.plob$Shannon)
+#use the function summarySE
+t.plob.sh.sum <- summarySE(erich.plob, measurevar = "logSh", groupvars = "platform")
+plob.sh <- ggplot(t.plob.sh.sum, aes(y = logSh, x = platform)) + 
+  geom_errorbar(aes(ymin = logSh -se, ymax = logSh +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Shannon Diversity Index)") + 
+  theme_classic()
 
-plot(sqOb.model.a)
-qq.line(resid(sqOb.model.a))
-plot_grid(plot_model(sqOb.model.a, type = "diag"))
-plot(allEffects(sqOb.model.a))
-plot_model(sqOb.model.a, type = "eff", terms = "platform")
-anova(sqOb.model.a)
-summary(sqOb.model.a)
+##Faith's PD
 
-newdata = data.frame(platform = levels(erich.mfol$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(sqOb.model.a)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(sqOb.model.a) %*% t(Xmat)))
-q = qt(0.975, df = nrow(sqOb.model.a$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-mfol.ob <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("log(Observed Richness)") + theme_classic()
+#M. aquituberculata FPD
+hist(erich.mfol$FaithPD)
+ggqqplot(erich.mfol$FaithPD)
+hist(log(erich.mfol$FaithPD))
+ggqqplot(log(erich.mfol$FaithPD))
+hist(1/(log(erich.mfol$FaithPD)))
+ggqqplot(1/(log(erich.mfol$FaithPD)))
+shapiro.test(1/(log(erich.mfol$FaithPD)))
+#results: W = 0.93447, p-value = 0.152
 
+#t-test
+t.mfol.fpd <- t.test(1/(log(erich.mfol$FaithPD)) ~ platform, data = erich.mfol, paired = TRUE)
+#results: t = 0.068482, df = 10, p-value = 0.9468 
 
-#plob - Observed
-sqOb.model.b <- lme(log(Observed) ~ platform, random = ~1|sample, data = erich.plob, method = "REML")
+erich.mfol$ilogFPD <- 1/(log(erich.mfol$FaithPD))
+#use the function summarySE
+t.mfol.fpd.sum <- summarySE(erich.mfol, measurevar = "ilogFPD", groupvars = "platform")
+mfol.fpd <- ggplot(t.mfol.fpd.sum, aes(y = ilogFPD, x = platform)) + 
+  geom_errorbar(aes(ymin = ilogFPD -se, ymax = ilogFPD +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("1/Log(Faith's Phylogenetic Diversity)") + 
+  theme_classic()
 
-plot(sqOb.model.b)
-qq.line(resid(sqOb.model.b))
-plot_grid(plot_model(sqOb.model.b, type = "diag"))
-plot(allEffects(sqOb.model.b))
-plot_model(sqOb.model.b, type = "eff", terms = "platform")
-anova(sqOb.model.b)
-summary(sqOb.model.b)
+#P. lobata FPD
+hist(erich.plob$FaithPD)
+ggqqplot(erich.plob$FaithPD)
+hist(log(erich.plob$FaithPD))
+ggqqplot(log(erich.plob$FaithPD))
+shapiro.test(log(erich.plob$FaithPD))
+#results: W = 0.96647, p-value = 0.5343
 
-newdata = data.frame(platform = levels(erich.plob$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(sqOb.model.b)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(sqOb.model.b) %*% t(Xmat)))
-q = qt(0.975, df = nrow(sqOb.model.b$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-plob.ob <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("log(Observed Richness)") + theme_classic()
+#t-test
+t.plob.fpd <- t.test(log(FaithPD) ~ platform, data = erich.plob, paired = TRUE)
+#results: t = 1.5828, df = 12, p-value = 0.1395
 
-
-#Mfol - Shannon
-model.c <- lme(Shannon ~ platform, random = ~1|sample, data = erich.mfol, method = "REML")
-
-plot(model.c)
-qq.line(resid(model.c))
-plot_grid(plot_model(model.c, type = "diag"))
-plot(allEffects(model.c))
-plot_model(model.c, type = "eff", terms = "platform")
-anova(model.c)
-summary(model.c)
-
-newdata = data.frame(platform = levels(erich.mfol$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.c)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.c) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.c$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-mfol.sh <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("Shannon Diversity Index") + theme_classic()
-
-
-
-#Plob - Shannon
-
-model.d <- lme(Shannon ~ platform, random = ~1|sample, data = erich.plob, method = "REML")
-
-plot(model.d)
-qq.line(resid(model.d))
-plot_grid(plot_model(model.d, type = "diag"))
-plot(allEffects(model.d))
-plot_model(model.d, type = "eff", terms = "platform")
-anova(model.d)
-summary(model.d)
-
-newdata = data.frame(platform = levels(erich.plob$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.d)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.d) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.d$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-plob.sh <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("Shannon Diversity Index") + theme_classic()
-
+erich.plob$logFPD <- log(erich.plob$FaithPD)
+#use the function summarySE
+t.plob.fpd.sum <- summarySE(erich.plob, measurevar = "logFPD", groupvars = "platform")
+plob.fpd <- ggplot(t.plob.fpd.sum, aes(y = logFPD, x = platform)) + 
+  geom_errorbar(aes(ymin = logFPD -se, ymax = logFPD +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Faith's Phylogenetic Diversity)") + 
+  theme_classic()
 
 #Chao1
 
@@ -267,121 +297,53 @@ erich.nr$sample <- data.nr$sample_label
 erich.nr$species <- data.nr$field_host_name
 
 erich.nr.mfol <- erich.nr %>% filter(species == "Montipora foliosa")
+erich.nr.mfol <-  erich.nr.mfol[order(erich.nr.mfol$platform, erich.nr.mfol$sample),]
 erich.nr.plob <- erich.nr %>% filter(species == "Porites lobata")
+erich.nr.plob <-  erich.nr.plob[order(erich.nr.plob$platform, erich.nr.plob$sample),]
 
-hist(erich.nr$Chao1)
+#M. aquituberculata Chao1
+hist(erich.nr.mfol$Chao1)
+ggqqplot(erich.nr.mfol$Chao1)
+hist(log(erich.nr.mfol$Chao1))
+ggqqplot(log(erich.nr.mfol$Chao1))
+shapiro.test(log(erich.nr.mfol$Chao1))
+#results: W = 0.95048, p-value = 0.3228
 
+#t-test
+t.mfol.ch <- t.test(log(Chao1) ~ platform, data = erich.nr.mfol, paired = TRUE)
+#results: t = 1.6691, df = 10, p-value = 0.1261
 
+erich.nr.mfol$logCh <- log(erich.nr.mfol$Chao1)
+#use the function summarySE
+t.mfol.ch.sum <- summarySE(erich.nr.mfol, measurevar = "logCh", groupvars = "platform")
+mfol.ch <- ggplot(t.mfol.ch.sum, aes(y = logCh, x = platform)) + 
+  geom_errorbar(aes(ymin = logCh -se, ymax = logCh +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Chao1)") + 
+  theme_classic()
 
-#Mfol- Chao1
-model.e <- lme(log(Chao1) ~ platform, random = ~1|sample, data = erich.nr.mfol, method = "REML")
+#P. lobata Chao1
+hist(erich.nr.plob$Chao1)
+ggqqplot(erich.nr.plob$Chao1)
+hist(log(erich.nr.plob$Chao1))
+ggqqplot(log(erich.nr.plob$Chao1))
+shapiro.test(log(erich.nr.plob$Chao1))
+#results: W = 0.95171, p-value = 0.2542
 
-plot(model.e)
-qq.line(resid(model.e))
-plot_grid(plot_model(model.e, type = "diag"))
-plot(allEffects(model.e))
-plot_model(model.e, type = "eff", terms = "platform")
-anova(model.e)
-summary(model.e)
+#t-test
+t.plob.ch <- t.test(log(Chao1) ~ platform, data = erich.nr.plob, paired = TRUE)
+#results: t = 1.9151, df = 12, p-value = 0.07961
 
-newdata = data.frame(platform = levels(erich.nr.mfol$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.e)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.e) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.e$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-mfol.ch <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("log(Chao1 Diversity Index)") + theme_classic()
-
-#P.lob - Chao 1
-model.f <- lme(log(Chao1) ~ platform, random = ~1|sample, data = erich.nr.plob, method = "REML")
-
-plot(model.f)
-qq.line(resid(model.f))
-plot_grid(plot_model(model.f, type = "diag"))
-plot(allEffects(model.f))
-plot_model(model.f, type = "eff", terms = "platform")
-anova(model.f)
-summary(model.f)
-
-newdata = data.frame(platform = levels(erich.nr.plob$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.f)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.f) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.f$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-plob.ch <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                             ymax = upper)) + scale_y_continuous("log(Chao1 Diversity Index)") + theme_classic()
-
-
-##Faith's PD
-
-#MFol FaithsD
-model.7 <- lme(FaithPD ~ platform, random = ~1|sample, data = erich.mfol, method = "REML")
-model.7a <- lme(log(FaithPD) ~ platform, random = ~1|sample, data = erich.mfol, method = "REML")
-model.7b <- lme(sqrt(FaithPD) ~ platform, random = ~1|sample, data = erich.mfol, method = "REML")
-AIC(model.7, model.7a, model.7b) #use model.7a 
-
-plot(model.7a)
-qq.line(resid(model.7a))
-plot_grid(plot_model(model.7a, type = "diag"))
-plot(allEffects(model.7a))
-plot_model(model.7a, type = "eff", terms = "platform")
-anova(model.7a)
-summary(model.7a)
-
-#numDF denDF   F-value p-value
-#(Intercept)     1    10 261.93513  <.0001
-#platform        1    10   0.71028  0.4191
-
-newdata = data.frame(platform = levels(erich.mfol$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.7a)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.7a) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.7a$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-mfol.fpd <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                              ymax = upper)) + scale_y_continuous("log(Faith's PD)") + theme_classic()
-
-
-#Plob FaithsD
-model.8 <- lme(FaithPD ~ platform, random = ~1|sample, data = erich.plob, method = "REML")
-model.8a <- lme(log(FaithPD) ~ platform, random = ~1|sample, data = erich.plob, method = "REML")
-model.8b <- lme(sqrt(FaithPD) ~ platform, random = ~1|sample, data = erich.plob, method = "REML")
-AIC(model.8, model.8a, model.8b) #use model.8a 
-
-plot(model.8a)
-qq.line(resid(model.8a))
-plot_grid(plot_model(model.8a, type = "diag"))
-plot(allEffects(model.8a))
-plot_model(model.8a, type = "eff", terms = "platform")
-anova(model.8a)
-summary(model.8a)
-
-#numDF denDF   F-value p-value
-#(Intercept)     1    12 250.54081  <.0001
-#platform        1    12   2.50525  0.1395
-
-newdata = data.frame(platform = levels(erich.plob$platform))
-Xmat = model.matrix(~platform, data = newdata)
-coefs = fixef(model.8a)
-fit = as.vector(coefs %*% t(Xmat))
-se = sqrt(diag(Xmat %*% vcov(model.8a) %*% t(Xmat)))
-q = qt(0.975, df = nrow(model.8a$data) - length(coefs) -
-         2)
-newdata = cbind(newdata, fit = fit, lower = fit - q * se, upper = fit +
-                  q * se)
-plob.fpd <- ggplot(newdata, aes(y = fit, x = platform)) + geom_pointrange(aes(ymin = lower,
-                                                                              ymax = upper)) + scale_y_continuous("log(Faith's PD)") + theme_classic()
+erich.nr.plob$logCh <- log(erich.nr.plob$Chao1)
+#use the function summarySE
+t.plob.ch.sum <- summarySE(erich.nr.plob, measurevar = "logCh", groupvars = "platform")
+plob.ch <- ggplot(t.plob.ch.sum, aes(y = logCh, x = platform)) + 
+  geom_errorbar(aes(ymin = logCh -se, ymax = logCh +se), width = 0.1) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous("log(Chao1)") + 
+  theme_classic()
 
 ###Betadiversity###
 ##All results from PERMANOVA are copied below tests after hashtags##
@@ -1345,3 +1307,7 @@ summary(tm.vib.lm.log)
 #             Df    Sum Sq    Mean Sq F value Pr(>F)
 #seq_platform  2 0.0000555 0.00002775  0.2202 0.8035
 #Residuals    35 0.0044118 0.00012605  
+
+
+
+

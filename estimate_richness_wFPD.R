@@ -1,5 +1,5 @@
 ##The following code is for the estimate_richness() function from phyloseq (McMurdie & Holmes 2013)
-##With an added function for calculating Faith's phylogenetic distance as "FaithPD"
+##Modified to add a step for calculating Faith's phylogenetic diversity as "FaithPD"
 
 estimate_richness_wPD <- function(physeq, split=TRUE, measures=NULL){
   
