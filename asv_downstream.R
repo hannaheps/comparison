@@ -102,13 +102,16 @@ data.r <- as(sample_data(physeq.r), "data.frame")
 physeq.ra <- transform_sample_counts(physeq.nr, function(x) x/ sum(x)) 
 data.ra <- as(sample_data(physeq.ra), "data.frame")
 
-
+#Relative abundance with rarefied data
+physeq.r.ra <- transform_sample_counts(physeq.r, function(x) x/ sum(x)) 
+data.r.ra <- as(sample_data(physeq.r), "data.frame")
 
 
 #First check barplots by Phylum
 #Re order factor levels 
 
 p <- plot_bar(physeq.ra, x = "sample_label", fill = "Phylum")
+#p <- plot_bar(physeq.r.ra, x = "sample_label", fill = "Phylum") #To look at the rarefied relative abundace plot
 
 p$data$sample_label <- factor(x = p$data$sample_label, levels = c("KI15BFMD082", "KI15BFMD089", "KI15BFMD124", "KI15BFMD142",
                                                                   "KI15BFMD144", "KI15BFMD146", "KI15BFMD190", "KI15BFMD193",
@@ -132,7 +135,7 @@ p1 + facet_grid(rows = vars(seq_platform))
 
 
 ggsave("~/Desktop/barplot_phy_asvs.pdf")
-
+#ggsave("~/Desktop/barplot_phy_asvs_rare.pdf")
 
 
 #Alpha diversity
