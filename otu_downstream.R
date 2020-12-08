@@ -137,6 +137,36 @@ p1 + facet_grid(rows = vars(seq_platform))
 ggsave("~/Desktop/barplot_phy_97.pdf")
 #ggsave("~/Desktop/barplot_phy_97_rare.pdf")
 
+#Look at top 10 phyla relative abundances by platform
+phabund <- tax_glom(physeq.ra, "Phylum")
+miseq_phabund <- subset_samples(phabund, seq_platform=="MiSeq")
+hiseq_phabund <- subset_samples(phabund, seq_platform == "HiSeq")
+
+TopNOTUs = names(sort(taxa_sums(miseq_phabund), TRUE)[1:10])
+newdat = prune_taxa(TopNOTUs, miseq_phabund)
+newdatmelt1 <- psmelt(newdat)
+above_zero <- newdatmelt1[which(newdatmelt1$Abundance > 0),]
+print(levels(above_zero$Genus))
+
+sum.miseq <- ddply(above_zero, c("Phylum"), summarise,
+             N = length(Abundance), 
+             mean = mean(Abundance),
+             sd = sd(Abundance), 
+             se = sd/sqrt(N)
+)
+
+TopNOTUs = names(sort(taxa_sums(hiseq_phabund), TRUE)[1:10])
+newdat = prune_taxa(TopNOTUs, hiseq_phabund)
+newdatmelt1 <- psmelt(newdat)
+above_zero <- newdatmelt1[which(newdatmelt1$Abundance > 0),]
+print(levels(above_zero$Genus))
+
+sum.hiseq <- ddply(above_zero, c("Phylum"), summarise,
+                   N = length(Abundance), 
+                   mean = mean(Abundance),
+                   sd = sd(Abundance), 
+                   se = sd/sqrt(N)
+)
 
 ##Alpha diversity
 #Observed Sp. Richness, Shannon, and Faith's PD using rarefied data (Chao1 uses unrarefied, see below)
