@@ -110,7 +110,38 @@ data.r.ra <- as(sample_data(physeq.r), "data.frame")
 #First check barplots by Phylum
 #Re order factor levels 
 
-p <- plot_bar(physeq.ra, x = "sample_label", fill = "Phylum")
+percent.trial <- physeq.nr %>% 
+  tax_glom(taxrank = "Phylum", NArm=FALSE) %>% 
+  transform_sample_counts(function(x) {x/sum(x)} ) 
+perc.melt <- psmelt(percent.trial)
+
+perc.melt$sample_label <- factor(perc.melt$sample_label, levels = c("KI15BFMD082", "KI15BFMD089", "KI15BFMD124", "KI15BFMD142",
+                                                                    "KI15BFMD144", "KI15BFMD146", "KI15BFMD190", "KI15BFMD193",
+                                                                    "KI15BFMD221", "KI15BFMD228", "KI15BFMD240", "KI15BFMD079",
+                                                                    "KI15BFMD086", "KI15BFMD091", "KI15BFMD105", "KI15BFMD112", 
+                                                                    "KI15BFMD115", "KI15BFMD122", "KI15BFMD141", "KI15BFMD189",
+                                                                    "KI15BFMD201", "KI15BFMD229", "KI15BFMD230", "KI15BFMD235"))
+
+sum.ra <- ddply(perc.melt, c("Phylum", "seq_platform", "sample_label"), summarise,
+                N = length(Abundance),
+                mean = mean(Abundance),
+                sd = sd(Abundance), 
+                se = sd/sqrt(N)
+)
+
+nb.cols <- 41
+mycolors <- colorRampPalette(brewer.pal(11, "RdYlBu"))(nb.cols)
+p <- ggplot(sum.ra, aes(x = sample_label, y = mean, fill = Phylum)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values=mycolors) +
+  
+  ylab("Relative Abundance") +
+  xlab("Sample Label") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+p + facet_grid(rows = vars(seq_platform)) 
+
+p1 <- plot_bar(physeq.ra, x = "sample_label", fill = "Phylum")
 #p <- plot_bar(physeq.r.ra, x = "sample_label", fill = "Phylum") #To look at the rarefied relative abundace plot
 
 p$data$sample_label <- factor(x = p$data$sample_label, levels = c("KI15BFMD082", "KI15BFMD089", "KI15BFMD124", "KI15BFMD142",

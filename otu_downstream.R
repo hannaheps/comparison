@@ -74,6 +74,7 @@ physeq.noncont <- subset_samples(physeq.noncont, is.neg != "TRUE")
 #Prune singletons (these are reads that are only found once)
 physeq.prune <- prune_taxa(taxa_sums(physeq.noncont) > 1, physeq.noncont)
 
+
 saveRDS(physeq.prune, "~/Desktop/comparison/97_OTUS/phy97_prune.RDS")
 physeq.prune <- readRDS("~/Dropbox/MacBook_Transfer/comparison/97_OTUS/phy97_prune.RDS")
 data.prune <- as(sample_data(physeq.prune), "data.frame")
@@ -110,6 +111,38 @@ physeq.r.ra <- transform_sample_counts(physeq.r, function(x) x/ sum(x))
 data.r.ra <- as(sample_data(physeq.r), "data.frame")
 
 #First check barplots by Phylum
+
+percent.trial <- physeq.nr %>% 
+  tax_glom(taxrank = "Phylum", NArm = FALSE) %>% 
+  transform_sample_counts(function(x) {x/sum(x)} ) 
+perc.melt <- psmelt(percent.trial)
+
+perc.melt$sample_label <- factor(perc.melt$sample_label, levels = c("KI15BFMD082", "KI15BFMD089", "KI15BFMD124", "KI15BFMD142",
+                                                                    "KI15BFMD144", "KI15BFMD146", "KI15BFMD190", "KI15BFMD193",
+                                                                    "KI15BFMD221", "KI15BFMD228", "KI15BFMD240", "KI15BFMD079",
+                                                                    "KI15BFMD091", "KI15BFMD105", "KI15BFMD112", 
+                                                                    "KI15BFMD115", "KI15BFMD122", "KI15BFMD141", "KI15BFMD189",
+                                                                    "KI15BFMD201", "KI15BFMD229", "KI15BFMD235"))
+
+sum.ra <- ddply(perc.melt, c("Phylum", "seq_platform", "sample_label"), summarise,
+                N = length(Abundance),
+                mean = mean(Abundance),
+                sd = sd(Abundance), 
+                se = sd/sqrt(N)
+)
+
+nb.cols <- 33
+mycolors <- colorRampPalette(brewer.pal(11, "RdYlBu"))(nb.cols)
+p <- ggplot(sum.ra, aes(x = sample_label, y = mean, fill = Phylum)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values=mycolors) +
+  ylab("Relative Abundance") +
+  xlab("Sample Label") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+p + facet_grid(rows = vars(seq_platform)) 
+
+
 
 p <- plot_bar(physeq.ra, x = "sample_label", fill = "Phylum")
 #p <- plot_bar(physeq.r.ra, x = "sample_label", fill = "Phylum")
