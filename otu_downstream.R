@@ -1,4 +1,4 @@
-##97% clustered OTU Statistical Analyses for comparison MS##
+##97% clustered OTU Statistical Analyses for Epstein et al. 2021 comparison##
 
 library(qiime2R)
 library(phyloseq)
@@ -10,6 +10,9 @@ library(gridExtra)
 library(vegan)
 library(decontam)
 library(RColorBrewer)
+
+##Pre-processing for phyloseq
+#To start with provided RDS file, go to line 83
 
 #Upload all files from qiime2 into phyloseq
 phy.97 <- qza_to_phyloseq("~/Desktop/comparison/97_OTUS/table_97_filtered.qza", 
@@ -76,7 +79,9 @@ physeq.prune <- prune_taxa(taxa_sums(physeq.noncont) > 1, physeq.noncont)
 
 
 saveRDS(physeq.prune, "~/Desktop/comparison/97_OTUS/phy97_prune.RDS")
-physeq.prune <- readRDS("~/Dropbox/MacBook_Transfer/comparison/97_OTUS/phy97_prune.RDS")
+
+##To start with provided RDS file, set your wd and begin here by uploading the following RDS file ##
+physeq.prune <- readRDS("phy97_prune.RDS")
 data.prune <- as(sample_data(physeq.prune), "data.frame")
 
 #Unrarefied - cut out everything with reads below 998
@@ -420,7 +425,6 @@ plob.data.nr <- as(sample_data(plob.nr), "data.frame")
 plob.ra <- transform_sample_counts(plob.nr, function(x) x/ sum(x)) 
 plob.data.ra <- as(sample_data(plob.ra), "data.frame")
 
-
 ## Binary Jaccard
 #Montipora foliosa
 jc.mfol <- phyloseq::distance(mfol.nr, method = "jaccard", binary = TRUE)
@@ -433,6 +437,10 @@ permutest(betadisper(jc.mfol, mfol.data.nr$seq_platform, type = "centroid"))
 #          Df    Sum Sq    Mean Sq      F N.Perm Pr(>F)
 #Groups     1 0.0007436 0.00074358 1.5201    999  0.238
 #Residuals 20 0.0097833 0.00048917  
+
+##jc.mfol <- phyloseq::distance(mfol.r, method = "jaccard", binary = TRUE)
+##adonis(jc.mfol ~ seq_platform, strata = mfol.data.r$sample_label, data = mfol.data.r)
+
 
 
 #Porites lobata

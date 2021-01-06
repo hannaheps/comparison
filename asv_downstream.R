@@ -1,4 +1,4 @@
-##ASV Statistical Analyses for comparison MS###
+##ASV Statistical Analyses for Epstein et al. 2021 comparison###
 
 library(qiime2R)
 library(phyloseq)
@@ -10,6 +10,9 @@ library(gridExtra)
 library(vegan)
 library(decontam)
 library(RColorBrewer)
+
+##Pre-processing for phyloseq
+#To start with provided RDS file, go to line 81
 
 #Upload all files from qiime2 into phyloseq
 physeq <- qza_to_phyloseq("~/Desktop/comparison/table_merged_filtered.qza", 
@@ -73,8 +76,10 @@ physeq.noncont <- subset_samples(physeq.noncont, is.neg != "TRUE")
 #Prune singletons (these are reads that are only found once)
 physeq.prune <- prune_taxa(taxa_sums(physeq.noncont) > 1, physeq.noncont)
 
-saveRDS(physeq.prune, "~/Dropbox/MacBook_Transfer/comparison/physeq_prune_asv.RDS")
-physeq.prune <- readRDS("~/Dropbox/MacBook_Transfer/comparison/physeq_prune_asv.RDS")
+saveRDS(physeq.prune, "~/Desktop/comparison/physeq_prune_asv.RDS")
+
+##To start with provided RDS file, set your wd and begin here by uploading the following RDS file ##
+physeq.prune <- readRDS("physeq_prune_asv.RDS")
 
 #Unrarefied - cut out every sample with below 1000 reads
 physeq.nr <- prune_samples(sample_sums(physeq.prune)>=1000, physeq.prune)
